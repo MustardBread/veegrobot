@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="inertial_macros.xacro"/>
+
+  <!-- Eigenschappen -->
+  <xacro:property name="base_length" value="1.33"/>
+  <xacro:property name="base_width" value="0.8"/>
+  <xacro:property name="base_height" value="1.07"/>
+  <xacro:property name="base_mass" value="10.0"/>
+
+  <xacro:property name="wheel_radius" value="0.125"/>
+  <xacro:property name="wheel_thickness" value="0.05"/>
+  <xacro:property name="wheel_mass" value="1.0"/>
+  <xacro:property name="wheel_separation" value="0.82"/>
+
+  <xacro:property name="front_wheel_offset_x" value="${base_length/2}"/>
+  <xacro:property name="rear_wheel_offset_x" value="${-base_length/2 + 0.32}"/>
+
+  <!-- Wielen komen met hun onderkant op z=0 -->
+  <xacro:property name="wheel_offset_z" value="${wheel_radius}"/>
+
+  <xacro:property name="brush_offset_y" value="${base_width/2 + 0.1}"/>
+  <xacro:property name="brush_radius" value="0.1"/>
+  <xacro:property name="brush_length" value="0.05"/>
+
+  <!-- Kleuren -->
+  <material name="blue">
+    <color rgba="0.1 0.3 1.0 1.0"/>
+  </material>
+
+  <material name="yellow">
+    <color rgba="1.0 0.8 0.1 1.0"/>
+  </material>
+
+  <material name="gray">
+    <color rgba="0.6 0.6 0.6 1.0"/>
+  </material>
+
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+
+  <!-- BASE LINK -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${wheel_offset_z + base_height/2}"/>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${wheel_offset_z + base_height/2}"/>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+    </collision>
+    <xacro:inertial_box mass="${base_mass}" x="${base_length}" y="${base_width}" z="${base_height}">
+      <origin xyz="0 0 ${wheel_offset_z + base_height/2}" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <!-- BACK WHEELS -->
+  <joint name="rear_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="back_wheels"/>
+    <origin xyz="${rear_wheel_offset_x} 0 ${wheel_offset_z}"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="back_wheels">
+    <visual>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_separation}"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_separation}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <gazebo reference="back_wheels">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <!-- FRONT STEERING -->
+  <joint name="steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_steering"/>
+    <origin xyz="${front_wheel_offset_x} 0 ${wheel_offset_z}"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.785" upper="0.785" effort="10" velocity="1.0"/>
+  </joint>
+
+  <link name="front_steering">
+    <visual>
+      <geometry>
+        <box size="0.3 0.1 0.05"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+  </link>
+
+  <gazebo reference="front_steering">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <!-- FRONT WHEEL -->
+  <joint name="front_wheel_joint" type="continuous">
+    <parent link="front_steering"/>
+    <child link="front_wheel"/>
+    <origin xyz="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="front_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <gazebo reference="front_wheel">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <!-- LEFT BRUSH -->
+  <joint name="brush_left_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="brush_left"/>
+    <origin xyz="0.665 ${brush_offset_y - 0.1} ${wheel_offset_z - brush_length/2}"/>
+  </joint>
+
+  <link name="brush_left">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${brush_radius}" length="${brush_length}"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+  </link>
+
+  <gazebo reference="brush_left">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+
+  <!-- RIGHT BRUSH -->
+  <joint name="brush_right_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="brush_right"/>
+    <origin xyz="0.665 ${-brush_offset_y + 0.1} ${wheel_offset_z - brush_length/2}"/>
+  </joint>
+
+  <link name="brush_right">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${brush_radius}" length="${brush_length}"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+  </link>
+
+  <gazebo reference="brush_right">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+
+</robot>
